@@ -39,6 +39,9 @@ module.exports.routes = {
   '/': {
     view: 'index'
   },
+  '/game': {
+    view: 'game'
+  },
   '/test': {
     view: 'test'
   }

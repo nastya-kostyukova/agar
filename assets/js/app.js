@@ -13,6 +13,28 @@ $( document ).ready(function() {
   });
 });
 
+$('#register').submit(function(event) {
+  event.preventDefault();
+  $.ajax({
+    url : "/user/login",
+    method: 'POST',
+    data: {
+      nickname: $(this).find('#name').val(),
+      password: $(this).find('#password').val()
+    },
+    success: function(response) {
+      console.log('Login result:', response);
+      if (response.status === 'ok') {
+        localStorage.setItem('login', response.userName);
+        window.location.href = '/game';
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error);
+    }
+  })
+});
+
 mealCanvas.drawRect({
   layer: true,
   fillStyle: '#f5f5f5',

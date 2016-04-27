@@ -11,6 +11,9 @@ module.exports = {
     nickname: {
       type: 'string',
     },
+    password: {
+      type: 'string',
+    },
     x:{
       type: 'integer',
     },

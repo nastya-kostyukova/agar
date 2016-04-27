@@ -1,5 +1,12 @@
-<canvas id="mainCanvas" width="1000" height="800"
-        style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
-<canvas id="mealCanvas" width="1000" height="800"
-        style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
-<h1>trnrt</h1>
+<form id="register" method="post">
+  <label>Register</label>
+  <input  id="name" name="name" placeholder="Name" type="text">
+  <input type="password"  id="password" placeholder="Password">
+  <input name="submit" type="submit" value="Register">
+</form>
+<script>
+  var login = localStorage.getItem('login');
+  if (login && login.length) {
+    window.location.href = "/game";
+  }
+</script>

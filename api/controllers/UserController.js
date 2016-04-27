@@ -13,11 +13,35 @@ const canvasWidth = 1000;
 const canvasHeight = 800;
 
 module.exports = {
-  index(req, res) {
-    User.create()
+  register(req, res) {
+    const userData = req.param('userData');
+    User.create(userData)
     .then((created) => {
       req.session.userId = created.id;
+      res.cookie('userId', created.id);
       res.json(created);
+    })
+  },
+
+  login (req, res) {
+    User.find({
+      nickname: req.param('nickname'),
+      password: req.param('password'),
+    })
+    .then((result) => {
+      if (result && result.length) {
+        req.session.userId = result[0].id;
+        res.cookie('userId', result[0].id);
+        return res.json({
+          status: 'ok',
+          userName: result[0].nickname,
+        })
+      }
+
+      return res.json({
+        status: 'error',
+      });
+
     })
   },
 
@@ -39,7 +63,8 @@ module.exports = {
     if (req.param("occupation") == "loading") {
       this.wsLoadingInitialDots();
     } else {
-      const userId = req.session.userId;
+      console.log(req.cookies);
+      const userId = req.cookies.userId;
       const x = req.param('x');
       const y = req.param('y');
       const radius = req.param('radius');
@@ -129,6 +154,7 @@ module.exports = {
     const countOfUsers = 1;
     var points = [];
     var i = 0;
+    var msg = "";
 
     PointsOfCanvas.find()
       .then(function (points) {
