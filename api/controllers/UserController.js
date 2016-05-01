@@ -96,7 +96,6 @@ module.exports = {
     const y = req.param('y');
     const radius = req.param('radius');
 
-
     var i = 0;
     var j = 0;
     var points = [];
@@ -104,49 +103,48 @@ module.exports = {
 
     PointsOfCanvas.find()
       .then(function (points) {
-        var msg = "";
+       // var msg = "";
 
-        console.log('Length before delete '+ points.length);
+       // console.log('Length before delete '+ points.length);
+
         //check if user eat some points
         while (i < points.length) {
-          console.log('while loop ');
           if (Math.pow((x - points[i].x), 2) + Math.pow((y - points[i].y), 2) <= Math.pow(radius, 2)) {
             PointsOfCanvas.destroy({x: points[i].x, y: points[i].y}).exec(function (err) {
               if (err) {
-                sails.log("Can't eat meal");
+      //          sails.log("Can't eat meal");
               }
-              sails.log("Meal is eaten.");
+       //       sails.log("Meal is eaten.");
             });
             /*remove point, but circle is of these points*/
             removingPoints.push(points[i]);
             points.splice(i, 1);
           } else {
             i++;
-            console.log("Meal is't eaten");
+       //     console.log("Meal is't eaten");
           }
         }
-        console.log('Length after delete '+ points.length);
-
+       // console.log('Length after delete '+ points.length);
         var newPoints = [];
-        i = 0;
-        //generate new points if this is necessary
-        while (countOfUsers * 35 > points.length) {
-          msg = "create new points";
-          console.log('!!Length after delete '+ points.length);
+        if (!removingPoints.length) {
 
-          var point = Meals.generateMeal(canvasWidth, canvasHeight);
-          //newPoints[i].x = point.x;
-          //newPoints[i].y = point.y;
+          i = 0;
+          //generate new points if this is necessary
+          while (countOfUsers * 35 > points.length) {
+            //  msg = "create new points";
+            // console.log('!!Length after delete '+ points.length);
 
-          newPoints[i] = point;
-          points[i + points.length] = point;
-          PointsOfCanvas.create( {x : point['x'], y : point['y']}).exec(function createCB(err, created){
-            console.log('Created point ' + created.x, + ' ' + created.y);
-          });
-          i++;
+            var point = Meals.generateMeal(canvasWidth, canvasHeight);
+            newPoints[i] = point;
+            points[i + points.length] = point;
+            PointsOfCanvas.create({x: point['x'], y: point['y']}).exec(function createCB(err, created) {
+              //  console.log('Created point ' + created.x, + ' ' + created.y);
+            });
+            i++;
+          }
         }
         //if (!msg) newPoints = points;
-        sails.sockets.blast('move_of_user', { msg, points: newPoints, removingPints: removingPoints});
+        sails.sockets.blast('move_of_user', {newPoints: newPoints, removePoints: removingPoints});
       })
   },
 
@@ -159,12 +157,12 @@ module.exports = {
     PointsOfCanvas.find()
       .then(function (points) {
         //loading points from db
-        while (countOfUsers * 10 > points.length) {
+        while (countOfUsers * 100 > points.length) {
           msg = "create new points";
           var point = Meals.generateMeal(canvasWidth, canvasHeight);
           points[i] = point;
           PointsOfCanvas.create( {x : point['x'], y : point['y']}).exec(function createCB(err, created){
-            console.log('Created point ' + created.x, + ' ' + created.y);
+            //console.log('Created point ' + created.x, + ' ' + created.y);
           });
           i++;
         }

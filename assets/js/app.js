@@ -53,11 +53,6 @@ var circle = mainCanvas.drawArc({
 
 var timer = -1;
 
-function detectCircle() {
-  var myDot = mainCanvas.getLayer('myDot');
-  console.log(myDot);
-  return { x: myDot.x, y: myDot.y}
-}
 
 function moveToXY(x, y) {
   if (timer > 0) {
@@ -70,8 +65,9 @@ function moveToXY(x, y) {
   var dist = Math.sqrt((Math.pow(x- myDot.x, 2)) + Math.pow(y- myDot.y, 2));
   var stepX = (x- myDot.x) / dist;
   var stepY = (y- myDot.y) / dist;
+  var radius = myDot.radius;
 
-  timer = setInterval(function() {
+    timer = setInterval(function() {
     var myDot = mainCanvas.getLayer('myDot');
     var newDist = Math.sqrt((Math.pow(x - myDot.x, 2)) + Math.pow(y - myDot.y, 2));
     if (newDist < 2) {
@@ -80,10 +76,21 @@ function moveToXY(x, y) {
       stepX = 0;
       stepY = 0;
     } else {
-      clearPoints(meals);
+
+      io.socket.put('/api/ws', { occupation: 'psychic', x: myDot.x, y: myDot.y, radius: myDot.radius }, function (resData, jwr) {
+        console.log(resData.test); // => 200
+      });
+
+      io.socket.on('move_of_user', function onServerSentEvent (msg) {
+        clearPoints(msg.removePoints);
+        drawDots(msg.newPoints);
+        radius += msg.removePoints.length /( radius * 2)
+      });
+
       mainCanvas.setLayer('myDot', {
         x: '+='+stepX,
-        y: '+='+stepY
+        y: '+='+stepY,
+        radius: radius
       })
       .drawLayers();
     };
@@ -94,47 +101,36 @@ mainCanvas.click(function(event) {
   var x = event.offsetX;
   var y = event.offsetY;
 
-  io.socket.put('/api/ws', { occupation: 'psychic', x: x, y: y, radius: 50 }, function (resData, jwr) {
-    console.log(resData.test); // => 200
-  });
 
   /* TO DO: По клику получаем список точек, кладем в переменную meals. В функции moveToXY проверяем попадаем ли на какую-нибудь точку и удаляем эту точку на клиенте из массива meals */
   /* При удалении вызвать io.socket.put с текущим массивом точек meals, он должен вызвать на бэкенде blast, который разошлет новый список точек */
-
-  io.socket.on('move_of_user', function onServerSentEvent (msg) {
-    console.log(msg.msg);
-    meals = msg.removingPints;
-    //drawDots(msg.points);
-    //clearPoints(msg.removingPints)
-  });
 
 
   moveToXY(x, y);
 });
 
-var dot;
+var canvas = document.getElementById('mealCanvas');
+
 function drawDots(points) {
-  points.forEach( function(element, index) {
-    dot = mealCanvas.drawArc({
-      draggable: false,
-      name: 'meal'+element.x+element.y,
-      fillStyle: getRandomColor(),
-      x: element.x, y: element.y,
-      radius: 5,
-    });
-  });
+  var context = canvas.getContext('2d');
+
+  for(var i = 0; i < points.length; i++) {
+    context.beginPath();
+    context.arc(points[i].x, points[i].y, 5, 0, 2 * Math.PI, false);
+    context.fillStyle = getRandomColor();
+    context.fill();
+  }
+
 }
 
 function clearPoints(points){
-  points.forEach( function(element, index) {
-    dot = mealCanvas.drawArc({
-      draggable: false,
-      name: 'meal'+element.x+element.y,
-      fillStyle: '#f5f5f5',
-      x: element.x, y: element.y,
-      radius: 7,
-    });
-  });
+  var context = canvas.getContext('2d');
+  for(var i = 0; i < points.length; i++) {
+    context.beginPath();
+    context.arc(points[i].x, points[i].y, 7, 0, 2 * Math.PI, false);
+    context.fillStyle = '#f5f5f5';
+    context.fill();
+  }
 }
 
 function getRandomColor() {
