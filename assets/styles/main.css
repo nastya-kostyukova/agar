@@ -5,7 +5,20 @@
   position: absolute;
   top: 0;
   z-index: 9999;
-  left: 1400px;
+  left: 1320px;
+  border-radius: 3px;
+  padding: 1% 2%;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+#exit{
+  font-size: 16pt;
+  font-weight: bold;
+  color: #777;
+  position: absolute;
+  top: 0;
+  z-index: 9999;
+  left: 1450px;
   border-radius: 3px;
   padding: 1% 2%;
   background: rgba(0, 0, 0, 0.15);

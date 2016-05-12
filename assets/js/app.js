@@ -28,6 +28,7 @@ $('#register').submit(function(event) {
       if (response.status === 'ok') {
         localStorage.setItem('login', response.userName);
         window.location.href = '/game';
+
       }
     },
     error: function(error) {
@@ -51,8 +52,15 @@ var circle = mainCanvas.drawArc({
   name: 'myDot'
 });
 
-var timer = -1;
+$( "#exit" ).click(function() {
 
+  io.socket.put('/api/exit', { }, function (resData, jwr) {
+    localStorage.removeItem('login');
+    window.location.href = "/";
+  });
+});
+
+var timer = -1;
 
 function moveToXY(x, y) {
   if (timer > 0) {
@@ -88,8 +96,18 @@ function moveToXY(x, y) {
         clearPoints(msg.removingPoints);
         radius = msg.radius;
         score = msg.score;
-       // console.log('score '+ score + ' radius '+ radius);
+
         $('#score').html(' '+ score + ' r '+ radius);
+      });
+
+      io.socket.on('points_for_new_user', function (msg) {
+        drawDots(msg.newPoints);
+      });
+      io.socket.on('new_user', function (msg) {
+        drawUsers(msg.user);
+      });
+      io.socket.on('exit', function (msg) {
+        clearUser(msg.user);
       });
 
       mainCanvas.setLayer('myDot', {
@@ -143,7 +161,26 @@ function drawDots(points) {
     context.fillStyle = points[i].color;
     context.fill();
   }
+}
 
+function drawUser(user) {
+  if (!user || !user.length) return;
+  var context = canvas.getContext('2d');
+
+    context.beginPath();
+    context.arc(users[i].x, users[i].y, users[i].radius, 0, 2 * Math.PI, false);
+    context.fillStyle = 'green';
+    context.fill();
+}
+
+function clearUser(user) {
+  if (!user || !user.length) return;
+  var context = canvas.getContext('2d');
+
+  context.beginPath();
+  context.arc(users[i].x, users[i].y, users[i].radius + 3, 0, 2 * Math.PI, false);
+  context.fillStyle = '#f5f5f5';
+  context.fill();
 }
 
 function clearPoints(points){

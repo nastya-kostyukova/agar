@@ -54,8 +54,15 @@ module.exports = {
         res.cookie('userId', result[0].id);
         result[0].score = 20;
 
-        users.push(result[0]);
+        var user = {
+          x : result[0].x,
+          y : result[0].y,
+          score : result[0].score,
+          radius : 20,
+        }
 
+        users.push(result[0]);
+        sails.sockets.blast('new_user', { user });
         return res.json({
           status: 'ok',
           userName: result[0].nickname,
@@ -89,6 +96,7 @@ module.exports = {
 
           self.wsblast(req, res);
         }
+
       })
 
     }
@@ -102,12 +110,10 @@ module.exports = {
     var score = users[userIndex].score;
     var radius = req.param('radius');
 
-
     var i = 0;
     var j = 0;
     var removingPoints = [];
     var newPoints = [];
-
 
     while (i < meals.length) {
 
@@ -149,16 +155,37 @@ module.exports = {
     const countOfUsers = 1;
     var i = 0;
     var msg = "";
+    var newPoints = [];
+    console.log('meals.length' + meals.length);
 
+    console.log('users.length' + users.length);
     while (countOfUsers * 100 > meals.length) {
       msg = "create new points";
       var point = Meals.generateMeal(canvasWidth, canvasHeight);
       meals[i] = point;
+      newPoints.push(point);
       i++;
     }
 
     sails.sockets.blast('load', { msg, points: meals});
+    sails.sockets.blast('points_for_new_user', { msg, newPoints: newPoints});
   },
+  exit(req, res) {
+    userId = req.cookies.userId;
+    var iToDelete;
+    users.forEach(function(user, i) {
+      if (user.id == userId){
+        iToDelete = i;
+      }
+    })
+    sails.sockets.blast('exit', { user: users[iToDelete]});
+    users.splice(iToDelete, 1);
+    req.cookies = null;
+    req.session = null;
 
+    return res.json({
+      status: 'ok',
+    })
+  }
 };
 

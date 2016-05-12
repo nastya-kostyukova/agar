@@ -33,6 +33,7 @@ module.exports.routes = {
   ***************************************************************************/
 
   '/api/ws': 'UserController.ws',
+  '/api/exit': 'UserController.exit',
   '/api/ws/blast': 'UserController.wsblast',
 
   '/': {
