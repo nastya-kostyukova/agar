@@ -6,7 +6,7 @@ var mealCanvas = $("#mealCanvas");
 var meals;
 
 $( document ).ready(function() {
-  io.socket.put('/api/ws', { occupation: 'loading', x: 0, y: 0, radius: 50 }, function (resData, jwr) {
+  io.socket.put('/api/ws', { occupation: 'loading', x: 0, y: 0, score: 50 }, function (resData, jwr) {
     //console.log(resData.test); // => 200
   });
   io.socket.on('load', function onServerSentEvent (msg) {
@@ -65,7 +65,7 @@ function moveToXY(x, y) {
   var dist = Math.sqrt((Math.pow(x- myDot.x, 2)) + Math.pow(y- myDot.y, 2));
   var stepX = (x- myDot.x) / dist;
   var stepY = (y- myDot.y) / dist;
-  var radius = myDot.radius;
+  var score = myDot.radius;
 
   timer = setInterval(function() {
     var myDot = mainCanvas.getLayer('myDot');
@@ -77,7 +77,7 @@ function moveToXY(x, y) {
       stepY = 0;
     } else {
 
-      io.socket.put('/api/ws', { occupation: 'psychic', x: myDot.x, y: myDot.y, radius: 50 }, function (resData, jwr) {
+      io.socket.put('/api/ws', { occupation: 'psychic', x: myDot.x, y: myDot.y, score: score }, function (resData, jwr) {
         console.log(resData.test); // => 200
       });
 
@@ -85,14 +85,13 @@ function moveToXY(x, y) {
         drawDots(msg.newPoints);
         clearPoints(msg.removingPoints);
 
-        //redrawMeals(msg.points);
-        //radius += msg.removePoints.length /( radius * 2)
+        score = msg.score;
       });
 
       mainCanvas.setLayer('myDot', {
         x: '+='+stepX,
         y: '+='+stepY,
-        radius: 50
+        radius: Math.round(score /100)
       })
       .drawLayers();
     };

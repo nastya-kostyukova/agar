@@ -14,6 +14,7 @@ const canvasHeight = 800;
 
 var users = [];
 var meals = [];
+var userIndex = {};
 module.exports = {
   register(req, res) {
     const userData = req.param('userData');
@@ -21,7 +22,7 @@ module.exports = {
       id : 0,
       x: 50,
       y:50,
-      radius: 20,
+      score: 20,
     };
 
     var meal = {
@@ -37,7 +38,6 @@ module.exports = {
     req.session.userId = id;
     res.cookie('userId', id)
     res.json(user);
-
   },
 
   login (req, res) {
@@ -70,23 +70,22 @@ module.exports = {
     if (req.param("occupation") == "loading") {
       this.wsLoadingInitialDots();
     } else {
-      //console.log(req.cookies);
+
       const userId = req.cookies.userId;
       const x = req.param('x');
       const y = req.param('y');
-      const radius = req.param('radius');
+      const score = req.param('score');
 
       var occupation = req.param('occupation');
       var self = this;
-      users.forEach(function(user) {
-      //  console.log('id '+ user.id+ ' x '+user.x+ ' y '+ user.y+' raduis '+ user.radius)
+      users.forEach(function(user, i) {
         if (user.id == userId) {
+          userIndex = i;
           user.x = x;
           user.y = y;
-          user.radius = radius;
+          user.score = score;
 
           self.wsblast(req, res);
-
         }
       })
 
@@ -98,19 +97,23 @@ module.exports = {
     const countOfUsers = 1;
     const x = req.param('x');
     const y = req.param('y');
-    const radius = req.param('radius');
+    const score = req.param('score');
+    const radius = score / 100;
 
     var i = 0;
     var j = 0;
     var removingPoints = [];
     var newPoints = [];
 
-    while (i < meals.length) {
-      if (Math.pow((x - meals[i].x), 2) + Math.pow((y - meals[i].y), 2) <= Math.pow(radius, 2)) {
 
+    while (i < meals.length) {
+
+      if (Math.pow((x - meals[i].x), 2) + Math.pow((y - meals[i].y), 2) <= Math.pow(radius, 2)) {
         removingPoints.push(meals[i]);
         meals.splice(i, 1);
-        return sails.sockets.blast('move_of_user', {newPoints: newPoints, removingPoints: removingPoints});
+        score++;
+        users[userIndex].score = score;
+        return sails.sockets.blast('move_of_user', {newPoints, removingPoints, score});
 
       } else {
         i++;
@@ -126,9 +129,10 @@ module.exports = {
         newPoints[i] = point;
         meals[i + meals.length] = point;
         i++;
+        return sails.sockets.blast('move_of_user', {newPoints: newPoints, removingPoints: removingPoints});
       }
     }
-    return sails.sockets.blast('move_of_user', {newPoints: newPoints, removingPoints: removingPoints});
+
   },
 
   wsLoadingInitialDots(req, res) {
