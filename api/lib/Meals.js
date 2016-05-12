@@ -7,12 +7,12 @@
  */
 module.exports = {
   generateMeal(width, height) {
-
     x = Math.random() * (width - 10) + 10;
     y = Math.random() * (height - 10) + 10;
-    color = generateColor();
+    color = this.generateColor();
     return {x, y, color};
   },
+
   generateColor(){
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';

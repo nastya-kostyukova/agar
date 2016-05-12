@@ -77,20 +77,22 @@ function moveToXY(x, y) {
       stepY = 0;
     } else {
 
-      io.socket.put('/api/ws', { occupation: 'psychic', x: myDot.x, y: myDot.y, radius: myDot.radius }, function (resData, jwr) {
+      io.socket.put('/api/ws', { occupation: 'psychic', x: myDot.x, y: myDot.y, radius: 50 }, function (resData, jwr) {
         console.log(resData.test); // => 200
       });
 
       io.socket.on('move_of_user', function (msg) {
-        clearPoints(msg.removePoints);
         drawDots(msg.newPoints);
-        radius += msg.removePoints.length /( radius * 2)
+        clearPoints(msg.removingPoints);
+
+        //redrawMeals(msg.points);
+        //radius += msg.removePoints.length /( radius * 2)
       });
 
       mainCanvas.setLayer('myDot', {
         x: '+='+stepX,
         y: '+='+stepY,
-        radius: radius
+        radius: 50
       })
       .drawLayers();
     };
@@ -111,6 +113,27 @@ mainCanvas.click(function(event) {
 
 var canvas = document.getElementById('mealCanvas');
 
+function redrawMeals(meals) {
+  if (!meals || !meals.length) return;
+
+  var context = canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  mealCanvas.drawRect({
+    layer: true,
+    fillStyle: '#f5f5f5',
+    x: 300, y: 200,
+    width: 2000, height: 1800,
+  });
+
+  for(var i = 0; i < meals.length; i++) {
+    context.beginPath();
+    context.arc(meals[i].x, meals[i].y, 5, 0, 2 * Math.PI, false);
+    context.fillStyle = meals[i].color;
+    context.fill();
+  }
+
+}
 function drawDots(points) {
   if (!points || !points.length) return;
   var context = canvas.getContext('2d');
@@ -118,7 +141,7 @@ function drawDots(points) {
   for(var i = 0; i < points.length; i++) {
     context.beginPath();
     context.arc(points[i].x, points[i].y, 5, 0, 2 * Math.PI, false);
-    context.fillStyle = getRandomColor();
+    context.fillStyle = points[i].color;
     context.fill();
   }
 
@@ -127,8 +150,9 @@ function drawDots(points) {
 function clearPoints(points){
   if (!points || !points.length) return;
   var context = canvas.getContext('2d');
+
   for(var i = 0; i < points.length; i++) {
-    console.log('clearPoints');
+    //console.log('clearPoints');
     context.beginPath();
     context.arc(points[i].x, points[i].y, 7, 0, 2 * Math.PI, false);
     context.fillStyle = '#f5f5f5';

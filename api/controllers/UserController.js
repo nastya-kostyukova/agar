@@ -76,23 +76,19 @@ module.exports = {
       const y = req.param('y');
       const radius = req.param('radius');
 
-      //console.log(`userId: ${userId}`);
-      var test = 'asdasd';
       var occupation = req.param('occupation');
+      var self = this;
+      users.forEach(function(user) {
+      //  console.log('id '+ user.id+ ' x '+user.x+ ' y '+ user.y+' raduis '+ user.radius)
+        if (user.id == userId) {
+          user.x = x;
+          user.y = y;
+          user.radius = radius;
 
-      User.update({id: userId}, {x, y, radius})
-        .exec((err, updated) => {
+          self.wsblast(req, res);
 
-          if (err) {
-            sails.log("server error");
-            return;
-          }
-
-          this.wsblast(req, res);
-        //console.log('Updated user to have name ' + updated[0].id);
-      });
-
-      //console.log(occupation, 'x ' + req.param('x') + ' y ' + req.param('y') + ' radius ' + req.param('radius'));
+        }
+      })
 
     }
   },
@@ -107,36 +103,32 @@ module.exports = {
     var i = 0;
     var j = 0;
     var removingPoints = [];
+    var newPoints = [];
 
-      while (i < meals.length) {
-        if (Math.pow((x - meals[i].x), 2) + Math.pow((y - meals[i].y), 2) <= Math.pow(radius, 2)) {
-          return PointsOfCanvas.destroy({x: meals[i].x, y: meals[i].y}).exec(function (err) {
-            if (err) {
-              sails.log("Can't eat meal");
-              return;
-            }
-            return sails.sockets.blast('move_of_user', {points: meals});
-          });
+    while (i < meals.length) {
+      if (Math.pow((x - meals[i].x), 2) + Math.pow((y - meals[i].y), 2) <= Math.pow(radius, 2)) {
 
-          removingPoints.push(meals[i]);
-          meals.splice(i, 1);
-        } else {
-          i++;
-        }
+        removingPoints.push(meals[i]);
+        meals.splice(i, 1);
+        return sails.sockets.blast('move_of_user', {newPoints: newPoints, removingPoints: removingPoints});
+
+      } else {
+        i++;
       }
+    }
 
-        var newPoints = [];
-        if (!removingPoints.length) {
-
-          i = 0;
-          //generate new points if this is necessary
-          while (countOfUsers * 35 > meals.length) {
-            var point = Meals.generateMeal(canvasWidth, canvasHeight);
-            newPoints[i] = point;
-            meals[i + meals.length] = point;
-            i++;
-          }
-        }
+    var newPoints = [];
+    i = 0;
+    if (!removingPoints.length) {
+      //generate new points if this is necessary
+      while (countOfUsers * 35 > meals.length) {
+        var point = Meals.generateMeal(canvasWidth, canvasHeight);
+        newPoints[i] = point;
+        meals[i + meals.length] = point;
+        i++;
+      }
+    }
+    return sails.sockets.blast('move_of_user', {newPoints: newPoints, removingPoints: removingPoints});
   },
 
   wsLoadingInitialDots(req, res) {
@@ -144,14 +136,14 @@ module.exports = {
     var i = 0;
     var msg = "";
 
-        while (countOfUsers * 100 > meals.length) {
-          msg = "create new points";
-          var point = Meals.generateMeal(canvasWidth, canvasHeight);
-          meals[i] = point;
-          i++;
-        }
+    while (countOfUsers * 100 > meals.length) {
+      msg = "create new points";
+      var point = Meals.generateMeal(canvasWidth, canvasHeight);
+      meals[i] = point;
+      i++;
+    }
 
-        sails.sockets.blast('load', { msg, points: meals});
+    sails.sockets.blast('load', { msg, points: meals});
   },
 
 };
