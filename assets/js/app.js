@@ -67,7 +67,7 @@ function moveToXY(x, y) {
   var stepY = (y- myDot.y) / dist;
   var radius = myDot.radius;
 
-    timer = setInterval(function() {
+  timer = setInterval(function() {
     var myDot = mainCanvas.getLayer('myDot');
     var newDist = Math.sqrt((Math.pow(x - myDot.x, 2)) + Math.pow(y - myDot.y, 2));
     if (newDist < 2) {
@@ -81,7 +81,7 @@ function moveToXY(x, y) {
         console.log(resData.test); // => 200
       });
 
-      io.socket.on('move_of_user', function onServerSentEvent (msg) {
+      io.socket.on('move_of_user', function (msg) {
         clearPoints(msg.removePoints);
         drawDots(msg.newPoints);
         radius += msg.removePoints.length /( radius * 2)
@@ -112,6 +112,7 @@ mainCanvas.click(function(event) {
 var canvas = document.getElementById('mealCanvas');
 
 function drawDots(points) {
+  if (!points || !points.length) return;
   var context = canvas.getContext('2d');
 
   for(var i = 0; i < points.length; i++) {
@@ -124,8 +125,10 @@ function drawDots(points) {
 }
 
 function clearPoints(points){
+  if (!points || !points.length) return;
   var context = canvas.getContext('2d');
   for(var i = 0; i < points.length; i++) {
+    console.log('clearPoints');
     context.beginPath();
     context.arc(points[i].x, points[i].y, 7, 0, 2 * Math.PI, false);
     context.fillStyle = '#f5f5f5';
@@ -133,12 +136,4 @@ function clearPoints(points){
   }
 }
 
-function getRandomColor() {
-  var letters = '0123456789ABCDEF'.split('');
-  var color = '#';
-  for (var i = 0; i < 6; i++ ) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-}
 

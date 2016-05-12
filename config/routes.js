@@ -32,7 +32,6 @@ module.exports.routes = {
   *                                                                          *
   ***************************************************************************/
 
-  '/smth': 'UserController.sometest',
   '/api/ws': 'UserController.ws',
   '/api/ws/blast': 'UserController.wsblast',
 
