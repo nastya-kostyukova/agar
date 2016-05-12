@@ -1,12 +1,20 @@
-<form id="register" method="post">
-  <label>Register</label>
-  <input  id="name" name="name" placeholder="Name" type="text">
-  <input type="password"  id="password" placeholder="Password">
-  <input name="submit" type="submit" value="Register">
-</form>
+<div class="container">
+
+  <form class="form-signin" id="register">
+    <h2 class="form-signin-heading">Sign in</h2>
+    <label for="name" class="sr-only">Name</label>
+    <input type="text" id="name" class="form-control" placeholder="Name" required autofocus>
+    <label for="password" class="sr-only">Password</label>
+    <input type="password" id="password" class="form-control" placeholder="Password" required autofocus>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Log in</button>
+  </form>
+
+</div>
 <script>
   var login = localStorage.getItem('login');
   if (login && login.length) {
     window.location.href = "/game";
   }
 </script>
+
+
