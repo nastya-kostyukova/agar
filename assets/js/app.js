@@ -6,7 +6,7 @@ var mealCanvas = $("#mealCanvas");
 var meals;
 
 $( document ).ready(function() {
-  io.socket.put('/api/ws', { occupation: 'loading', x: 0, y: 0, score: 50 }, function (resData, jwr) {
+  io.socket.put('/api/ws', { occupation: 'loading', x: 0, y: 0, score: 20 }, function (resData, jwr) {
     //console.log(resData.test); // => 200
   });
   io.socket.on('load', function onServerSentEvent (msg) {
@@ -47,7 +47,7 @@ var circle = mainCanvas.drawArc({
   draggable: true,
   fillStyle: "green",
   x: 100, y: 100,
-  radius: 50,
+  radius: 20,
   name: 'myDot'
 });
 
@@ -65,7 +65,8 @@ function moveToXY(x, y) {
   var dist = Math.sqrt((Math.pow(x- myDot.x, 2)) + Math.pow(y- myDot.y, 2));
   var stepX = (x- myDot.x) / dist;
   var stepY = (y- myDot.y) / dist;
-  var score = myDot.radius;
+  var radius = myDot.radius;
+  var score = 20;
 
   timer = setInterval(function() {
     var myDot = mainCanvas.getLayer('myDot');
@@ -77,21 +78,24 @@ function moveToXY(x, y) {
       stepY = 0;
     } else {
 
-      io.socket.put('/api/ws', { occupation: 'psychic', x: myDot.x, y: myDot.y, score: score }, function (resData, jwr) {
+      io.socket.put('/api/ws', { occupation: 'psychic', x: myDot.x, y: myDot.y, radius: myDot.radius}, function (resData, jwr) {
         console.log(resData.test); // => 200
       });
 
       io.socket.on('move_of_user', function (msg) {
+
         drawDots(msg.newPoints);
         clearPoints(msg.removingPoints);
-
+        radius = msg.radius;
         score = msg.score;
+       // console.log('score '+ score + ' radius '+ radius);
+        $('#score').html(' '+ score + ' r '+ radius);
       });
 
       mainCanvas.setLayer('myDot', {
         x: '+='+stepX,
         y: '+='+stepY,
-        radius: Math.round(score /100)
+        radius: radius,
       })
       .drawLayers();
     };
@@ -101,10 +105,6 @@ function moveToXY(x, y) {
 mainCanvas.click(function(event) {
   var x = event.offsetX;
   var y = event.offsetY;
-
-
-  /* TO DO: По клику получаем список точек, кладем в переменную meals. В функции moveToXY проверяем попадаем ли на какую-нибудь точку и удаляем эту точку на клиенте из массива meals */
-  /* При удалении вызвать io.socket.put с текущим массивом точек meals, он должен вызвать на бэкенде blast, который разошлет новый список точек */
 
 
   moveToXY(x, y);
